@@ -1,3 +1,4 @@
+import { StackContext, StackProvider } from "@/contexts/stack.context";
 import { useAuth } from "@/hooks/useAuth";
 import AuthStack from "@/navigation/authStack";
 import UserStack from "@/navigation/userStack";
@@ -5,7 +6,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export {
     // Catch any errors thrown by the Layout component.
@@ -14,7 +15,7 @@ export {
 
 export const unstable_settings = {
     // Ensure that reloading on `/modal` keeps a back button present.
-    initialRouteName: "(tabs)",
+    initialRouteName: "welcome",
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -41,17 +42,36 @@ export default function RootLayout() {
         return null;
     }
 
-    return <RootLayoutNav />;
+    return (
+        <StackProvider>
+            <RootLayoutNav />
+        </StackProvider>
+    );
 }
 
 function RootLayoutNav() {
-    const { token } = useAuth();
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+    const { currentStack, setCurrentStack } = useContext(StackContext);
+    const { token, loading: authLoading } = useAuth();
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        setIsLoggedIn(!!token);
-        console.log("Token: ", token);
-    }, [token]);
+        if (!authLoading) {
+            setLoading(false);
+            if (token) {
+                setCurrentStack("UserStack");
+            } else {
+                setCurrentStack("AuthStack");
+            }
+        }
+    }, [authLoading, token]);
 
-    return !isLoggedIn ? <AuthStack /> : <UserStack />;
+    if (loading) {
+        return null; // replace with your actual loading screen component
+    }
+
+    if (currentStack === "UserStack") {
+        return <UserStack />;
+    }
+
+    return <AuthStack />;
 }

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { User } from "../types";
 import * as SecureStore from "expo-secure-store";
+import * as SplashScreen from "expo-splash-screen";
 
 export function useAuth() {
     const [token, setToken] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         if (token) {
@@ -22,10 +24,14 @@ export function useAuth() {
                 .then((value) => {
                     if (value) {
                         setToken(value);
+                    } else {
+                        setToken(null);
                     }
+                    setLoading(false);
                 })
                 .catch((err) => {
                     console.error(err);
+                    setLoading(false);
                 });
         };
 
@@ -94,5 +100,5 @@ export function useAuth() {
         return userData;
     }
 
-    return { token, user, login, logout };
+    return { token, user, login, logout, error, loading };
 }

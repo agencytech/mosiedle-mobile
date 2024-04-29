@@ -1,9 +1,22 @@
+import { StackContext } from "@/contexts/stack.context";
+import { useAuth } from "@/hooks/useAuth";
 import { Stack } from "expo-router";
-import React from "react";
+import React, { useContext, useEffect } from "react";
+import { router } from "expo-router";
 
 type Props = {};
 
 export default function AuthStack({}: Props) {
+    const { setCurrentStack } = useContext(StackContext);
+    const { token } = useAuth();
+
+    useEffect(() => {
+        if (!token) {
+            setCurrentStack("AuthStack");
+            router.replace("/welcome");
+        }
+    }, [token]);
+
     return (
         <Stack
             screenOptions={{
