@@ -31,7 +31,7 @@ export default function Login({}: Props) {
             router.replace("/(tabs)");
         } else {
             console.error("Failed to log in front", user);
-            alert("Nie udało się zalogować. Spróbuj ponownie.");
+            alert("Nie udało się zalogować. Spróbuj ponownie. " + user);
         }
     };
 
