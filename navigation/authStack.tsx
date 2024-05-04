@@ -1,21 +1,24 @@
-import { StackContext } from "@/contexts/stack.context";
-import { useAuth } from "@/hooks/useAuth";
-import { Stack } from "expo-router";
-import React, { useContext, useEffect } from "react";
-import { router } from "expo-router";
+import { Redirect, Stack } from "expo-router";
+import { useSession } from "@/contexts/session";
+import { Text } from "react-native";
 
 type Props = {};
 
 export default function AuthStack({}: Props) {
-    const { setCurrentStack } = useContext(StackContext);
-    const { token } = useAuth();
+    const { session, isLoading } = useSession();
 
-    useEffect(() => {
-        if (!token) {
-            setCurrentStack("AuthStack");
-            router.replace("/welcome");
-        }
-    }, [token]);
+    // You can keep the splash screen open, or render a loading screen like we do here.
+    if (isLoading) {
+        return <Text>Loading...</Text>;
+    }
+
+    // Only require authentication within the (app) group's layout as users
+    // need to be able to access the (auth) group and sign in again.
+    if (session) {
+        // On web, static rendering will stop here as the user is not authenticated
+        // in the headless Node process that the pages are rendered in.
+        return <Redirect href="/" />;
+    }
 
     return (
         <Stack

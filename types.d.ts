@@ -11,6 +11,9 @@ export interface User {
     community_admins?: Community[];
 
     announcements: Announcement[];
+
+    accessToken?: string;
+    refreshToken?: string;
 }
 
 export interface Role {

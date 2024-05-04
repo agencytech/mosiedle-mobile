@@ -1,10 +1,18 @@
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+    StatusBar,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { Image } from "expo-image";
-import { ChevronLeftIcon } from "lucide-react-native";
-import { Link } from "expo-router";
+// import { ChevronLeftIcon } from "lucide-react-native";
+import { Link, router } from "expo-router";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useSession } from "@/contexts/session";
 
-const logo = require("../assets/images/logo.svg");
+const logo = require("../assets/images/logo.png");
 
 type Props = {};
 
@@ -13,7 +21,6 @@ interface FormData {
     email: string;
     password: string;
     passwordConfirm: string;
-    code: string;
 }
 
 export default function Register({}: Props) {
@@ -33,7 +40,7 @@ export default function Register({}: Props) {
                     label: "Adres e-mail",
                     name: "email",
                     placeholder: "jan.kowalski@gmail.com",
-                    type: "email",
+                    type: "emailAddress",
                     required: true,
                 },
             ],
@@ -65,8 +72,39 @@ export default function Register({}: Props) {
         email: "",
         password: "",
         passwordConfirm: "",
-        code: "",
     });
+    const { register } = useAuth();
+    const { signIn } = useSession();
+
+    async function handleRegister() {
+        if (formData.password === formData.passwordConfirm) {
+            const isRegistered = await register(
+                formData.email,
+                formData.password,
+                formData.fullName
+            );
+
+            if (isRegistered) {
+                const user = await signIn(formData.email, formData.password);
+
+                if (user) {
+                    setFormData({
+                        fullName: "",
+                        email: "",
+                        password: "",
+                        passwordConfirm: "",
+                    });
+                    router.replace("/(tabs)");
+                } else {
+                    console.error("Failed to log in front");
+                }
+            } else {
+                console.error("Failed to register front");
+            }
+        } else {
+            console.error("Passwords do not match");
+        }
+    }
 
     function canProceed() {
         // based on the current step, check if the formData properties required in the current step are filled
@@ -85,15 +123,15 @@ export default function Register({}: Props) {
     }
 
     return (
-        <View className="flex items-center justify-start flex-1 bg-white">
+        <View className="flex items-center justify-start flex-1 pt-12 bg-white">
             {/* //!! HEADER */}
             <View className="flex flex-row items-start justify-between w-full p-5">
                 <Link href="/welcome" asChild>
                     <TouchableOpacity className="flex flex-row items-center justify-center">
-                        <ChevronLeftIcon
+                        {/* <ChevronLeftIcon
                             size={32}
                             className="w-12 h-12 text-primary"
-                        />
+                        /> */}
                         <Text className="font-medium text-primary">
                             Strona główna
                         </Text>
@@ -169,7 +207,7 @@ export default function Register({}: Props) {
                     </TouchableOpacity>
                     <TouchableOpacity
                         className="flex items-center justify-center w-1/3 py-1.5 border-2 border-primary rounded-xl bg-primary"
-                        onPress={() => {
+                        onPress={async () => {
                             // each time the user clicks the button:
                             // 1. check if the fields are filled
                             // 2. if they are, check if the current step is the last one
@@ -177,14 +215,14 @@ export default function Register({}: Props) {
                             // 4. if it's not, move to the next step
                             if (canProceed()) {
                                 if (currentStep === steps.length - 1) {
-                                    // submit the form
+                                    await handleRegister();
                                 } else {
                                     setCurrentStep(currentStep + 1);
                                 }
                             }
                         }}
                     >
-                        <Text className="text-xl font-medium text-white">
+                        <Text className="text-xl text-white">
                             {currentStep === steps.length - 1
                                 ? "Zarejestruj się"
                                 : "Dalej"}
@@ -193,6 +231,7 @@ export default function Register({}: Props) {
                 </View>
             </View>
             {/* //!! FORM */}
+            <StatusBar barStyle={"dark-content"} />
         </View>
     );
 }

@@ -1,13 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TokenService } from "@/tokens.service";
+import { useSession } from "@/contexts/session";
 
 type Props = {};
 
-const icon = require("../assets/images/icon.svg");
+const icon = require("../assets/images/icon.png");
 
 export default function WelcomeScreen({}: Props) {
+    const { session } = useSession();
+
+    useEffect(() => {
+        if (session) {
+            router.replace("/(tabs)");
+        }
+    }, [session]);
+
     return (
         <View className="flex items-center flex-1 justify-evenly bg-primary">
             <View className="flex flex-col items-center justify-center gap-12">
@@ -36,6 +47,29 @@ export default function WelcomeScreen({}: Props) {
                         </Text>
                     </TouchableOpacity>
                 </Link>
+                {/* FOR DEVELOPMENT */}
+                <TouchableOpacity
+                    onPress={async () => {
+                        await TokenService.clearTokens();
+                        await AsyncStorage.clear();
+                        alert("Storage cleared!");
+                    }}
+                    className="flex items-center justify-center w-5/6 py-2 bg-white border-2 border-white rounded-xl"
+                >
+                    <Text className="text-xl font-medium text-primary">
+                        Clear storage
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={async () => {
+                        router.replace("/(tabs)");
+                    }}
+                    className="flex items-center justify-center w-5/6 py-2 bg-white border-2 border-white rounded-xl"
+                >
+                    <Text className="text-xl font-medium text-primary">
+                        Home screen
+                    </Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
